@@ -13,7 +13,7 @@ def test_install(e: Environment):
     e.harness.begin_with_initial_hooks()
 
     e.util.install_required_packages.assert_called_once_with()
-    e.microk8s.install.assert_called_once_with()
+    e.microk8s.install.assert_called_once_with("latest/edge")
     e.microk8s.wait_ready.assert_called_once_with()
     e.microk8s.write_local_kubeconfig.assert_not_called()
 
@@ -51,7 +51,7 @@ def test_control_plane_relation(e: Environment, is_leader: bool):
     e.microk8s.install.reset_mock()
     rel_id = e.harness.add_relation("control-plane", "microk8s-cp")
     e.harness.add_relation_unit(rel_id, "microk8s-cp/0")
-    e.microk8s.install.assert_called_once_with()
+    e.microk8s.install.assert_called_once_with("latest/edge")
     e.microk8s.write_local_kubeconfig.assert_not_called()
 
 

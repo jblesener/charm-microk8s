@@ -8,6 +8,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import Callable, Optional
 
 from ops.model import ActiveStatus, MaintenanceStatus, WaitingStatus
 
@@ -26,20 +27,64 @@ def snap_data_dir() -> Path:
     return Path("/var/snap/microk8s/current")
 
 
-def install():
+def install(channel: str = charm_config.SNAP_CHANNEL):
     """`snap install microk8s`"""
-    LOG.info("Installing MicroK8s (channel %s)", charm_config.SNAP_CHANNEL)
-    cmd = ["snap", "install", "microk8s", "--classic", "--channel", charm_config.SNAP_CHANNEL]
+    channel = charm_config.validate_channel(channel)
+    LOG.info("Installing MicroK8s (channel %s)", channel)
+    cmd = ["snap", "install", "microk8s", "--classic", "--channel", channel]
 
     util.ensure_call(cmd)
 
 
-def upgrade():
+def _refresh(channel: str):
+    LOG.info("Refresh MicroK8s to channel %s", channel)
+    util.ensure_call(["snap", "refresh", "microk8s", "--channel", channel])
+
+
+def _version_minor(version: str) -> Optional[int]:
+    if not version:
+        return None
+
+    try:
+        major, minor, *_ = version.split(".")
+        if major != "1":
+            return None
+        return int(minor)
+    except (ValueError, TypeError):
+        return None
+
+
+def _target_minor(channel: str) -> Optional[int]:
+    if not channel.startswith("1."):
+        return None
+
+    return _version_minor(channel.split("/", 1)[0])
+
+
+def upgrade(channel: str = charm_config.SNAP_CHANNEL, after_refresh: Callable[[], None] = None):
     """upgrade microk8s to charm version"""
-    LOG.info("Upgrade MicroK8s (channel %s)", charm_config.SNAP_CHANNEL or "default")
-    cmd = ["snap", "refresh", "microk8s", "--channel", charm_config.SNAP_CHANNEL]
+    channel = charm_config.validate_channel(channel)
+    LOG.info("Upgrade MicroK8s (channel %s)", channel or "default")
 
-    util.ensure_call(cmd)
+    current_minor = _version_minor(get_kubernetes_version())
+    target_minor = _target_minor(channel)
+
+    if current_minor is None or target_minor is None:
+        refresh_channels = [channel]
+    elif current_minor > target_minor:
+        raise ValueError(f"cannot downgrade MicroK8s from 1.{current_minor} to 1.{target_minor}")
+    else:
+        refresh_channels = [
+            f"1.{minor}/stable" for minor in range(current_minor + 1, target_minor + 1)
+        ]
+        if not refresh_channels:
+            refresh_channels = [channel]
+
+    for refresh_channel in refresh_channels:
+        _refresh(refresh_channel)
+        wait_ready()
+        if after_refresh:
+            after_refresh()
 
 
 def wait_ready(timeout: int = 30):

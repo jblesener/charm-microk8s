@@ -15,6 +15,11 @@ MK8S_CHARM = os.getenv("MK8S_CHARM", "build")
 #   - ''                        <-- when installing from local charm, set to empty
 MK8S_CHARM_CHANNEL = os.getenv("MK8S_CHARM_CHANNEL", "")
 
+# MK8S_SNAP_CHANNEL is the MicroK8s snap channel configured on the charm.
+#   - 'latest/edge'             <-- install MicroK8s from latest/edge
+#   - '1.35/stable'             <-- install MicroK8s from a stable Kubernetes track
+MK8S_SNAP_CHANNEL = os.getenv("MK8S_SNAP_CHANNEL", "")
+
 # MK8S_CLUSTER_SIZES is the cluster size to deploy. It is a list of lists of how many
 # control plane and how many worker nodes to deploy.
 # A separate test is run for each cluster size.

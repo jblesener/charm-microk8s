@@ -27,6 +27,7 @@ from ops.charm import (
 from ops.framework import StoredState
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 
+import charm_config
 import containerd
 import metrics
 import microk8s
@@ -69,6 +70,7 @@ class MicroK8sCharm(CharmBase):
 
             # configuration
             self.framework.observe(self.on.config_changed, self.config_ensure_role)
+            self.framework.observe(self.on.config_changed, self.config_ensure_channel)
             self.framework.observe(self.on.config_changed, self.on_install)
             self.framework.observe(self.on.config_changed, self.config_containerd_proxy)
             self.framework.observe(self.on.config_changed, self.config_containerd_registries)
@@ -100,6 +102,7 @@ class MicroK8sCharm(CharmBase):
 
             # configuration
             self.framework.observe(self.on.config_changed, self.config_ensure_role)
+            self.framework.observe(self.on.config_changed, self.config_ensure_channel)
             self.framework.observe(self.on.config_changed, self.on_install)
             self.framework.observe(self.on.config_changed, self.config_containerd_proxy)
             self.framework.observe(self.on.config_changed, self.config_containerd_registries)
@@ -166,10 +169,33 @@ class MicroK8sCharm(CharmBase):
             LOG.exception("failed to remove microk8s")
 
     def on_upgrade(self, _: UpgradeCharmEvent):
-        # TODO(neoaggelos): Figure out an orchestrated upgrade strategy
-        microk8s.upgrade()
+        try:
+            microk8s.upgrade(self.config["channel"], after_refresh=self._after_microk8s_refresh)
+        except ValueError as e:
+            self.unit.status = BlockedStatus(str(e))
+
+    def _after_microk8s_refresh(self):
+        if not self._state.joined:
+            return
+
+        self.config_rbac(None)
+        self.config_dns(None)
+        if self._state.role != "worker":
+            self.config_hostpath_storage(None)
+            self.apply_observability_resources(None)
+            self.update_metrics_tls_auth(None)
+        self.update_status(None)
 
     def on_install(self, _: InstallEvent):
+        try:
+            charm_config.validate_channel(self.config["channel"])
+        except ValueError as e:
+            self.unit.status = BlockedStatus(str(e))
+            return
+
+        if isinstance(self.unit.status, BlockedStatus):
+            return
+
         if self._state.installed:
             return
 
@@ -177,7 +203,7 @@ class MicroK8sCharm(CharmBase):
         util.install_required_packages()
 
         self.unit.status = MaintenanceStatus("installing MicroK8s")
-        microk8s.install()
+        microk8s.install(self.config["channel"])
 
         self.unit.status = MaintenanceStatus("initial containerd configuration")
         self.config_containerd_proxy(None)
@@ -197,6 +223,15 @@ class MicroK8sCharm(CharmBase):
             self.unit.status = BlockedStatus(msg)
         else:
             self.unit.status = MaintenanceStatus("maintenance")
+
+    def config_ensure_channel(self, _: ConfigChangedEvent):
+        if isinstance(self.unit.status, BlockedStatus):
+            return
+
+        try:
+            charm_config.validate_channel(self.config["channel"])
+        except ValueError as e:
+            self.unit.status = BlockedStatus(str(e))
 
     def config_containerd_proxy(self, _: ConfigChangedEvent):
         if isinstance(self.unit.status, BlockedStatus):

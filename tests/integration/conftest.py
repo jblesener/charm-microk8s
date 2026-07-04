@@ -41,6 +41,8 @@ async def e(ops_test: OpsTest):
 def charm_config():
     """fixture with common microk8s charm configuration settings."""
     charm_config = {}
+    if config.MK8S_SNAP_CHANNEL:
+        charm_config["channel"] = config.MK8S_SNAP_CHANNEL
     if config.MK8S_PROXY is not None:
         charm_config["containerd_http_proxy"] = config.MK8S_PROXY
         charm_config["containerd_https_proxy"] = config.MK8S_PROXY

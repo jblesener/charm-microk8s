@@ -29,5 +29,5 @@ juju deploy microk8s --constraints 'cores=2 mem=4G'
 Alternatively, to specify the MicroK8s version to install, you can use:
 
 ```bash
-juju deploy microk8s --constraints 'cores=2 mem=4G' --config channel=1.25
+juju deploy microk8s --constraints 'cores=2 mem=4G' --config channel=1.35/stable
 ```

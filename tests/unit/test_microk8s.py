@@ -19,13 +19,83 @@ def test_microk8s_install(ensure_call: mock.MagicMock):
         ["snap", "install", "microk8s", "--classic", "--channel", charm_config.SNAP_CHANNEL]
     )
 
+    ensure_call.reset_mock()
+    microk8s.install("1.34")
+    ensure_call.assert_called_once_with(
+        ["snap", "install", "microk8s", "--classic", "--channel", "1.34/stable"]
+    )
+
 
 @mock.patch("util.ensure_call")
-def test_microk8s_upgrade(ensure_call: mock.MagicMock):
-    microk8s.upgrade()
-    ensure_call.assert_called_once_with(
-        ["snap", "refresh", "microk8s", "--channel", charm_config.SNAP_CHANNEL]
-    )
+@mock.patch("microk8s.get_kubernetes_version")
+def test_microk8s_upgrade(get_kubernetes_version: mock.MagicMock, ensure_call: mock.MagicMock):
+    after_refresh = mock.Mock()
+    get_kubernetes_version.return_value = "1.29.10"
+
+    microk8s.upgrade("1.32/stable", after_refresh=after_refresh)
+
+    assert ensure_call.mock_calls == [
+        mock.call(["snap", "refresh", "microk8s", "--channel", "1.30/stable"]),
+        mock.call(["microk8s", "status", "--wait-ready", "--timeout=30"], capture_output=True),
+        mock.call(["snap", "refresh", "microk8s", "--channel", "1.31/stable"]),
+        mock.call(["microk8s", "status", "--wait-ready", "--timeout=30"], capture_output=True),
+        mock.call(["snap", "refresh", "microk8s", "--channel", "1.32/stable"]),
+        mock.call(["microk8s", "status", "--wait-ready", "--timeout=30"], capture_output=True),
+    ]
+    assert after_refresh.call_count == 3
+
+
+@mock.patch("util.ensure_call")
+@mock.patch("microk8s.get_kubernetes_version")
+def test_microk8s_upgrade_same_channel(
+    get_kubernetes_version: mock.MagicMock, ensure_call: mock.MagicMock
+):
+    get_kubernetes_version.return_value = "1.34.1"
+
+    microk8s.upgrade("1.34/stable")
+
+    assert ensure_call.mock_calls == [
+        mock.call(["snap", "refresh", "microk8s", "--channel", "1.34/stable"]),
+        mock.call(["microk8s", "status", "--wait-ready", "--timeout=30"], capture_output=True),
+    ]
+
+
+@mock.patch("util.ensure_call")
+@mock.patch("microk8s.get_kubernetes_version")
+def test_microk8s_upgrade_direct_when_current_version_unknown(
+    get_kubernetes_version: mock.MagicMock, ensure_call: mock.MagicMock
+):
+    get_kubernetes_version.return_value = None
+
+    microk8s.upgrade("1.36/stable")
+
+    assert ensure_call.mock_calls == [
+        mock.call(["snap", "refresh", "microk8s", "--channel", "1.36/stable"]),
+        mock.call(["microk8s", "status", "--wait-ready", "--timeout=30"], capture_output=True),
+    ]
+
+
+@mock.patch("util.ensure_call")
+@mock.patch("microk8s.get_kubernetes_version")
+def test_microk8s_upgrade_blocks_downgrade(
+    get_kubernetes_version: mock.MagicMock, ensure_call: mock.MagicMock
+):
+    get_kubernetes_version.return_value = "1.36.0"
+
+    with pytest.raises(ValueError, match="cannot downgrade"):
+        microk8s.upgrade("1.35/stable")
+
+    ensure_call.assert_not_called()
+
+
+def test_microk8s_channel_validation():
+    assert charm_config.validate_channel("") == "latest/edge"
+    assert charm_config.validate_channel("1.28/stable") == "1.28/stable"
+    assert charm_config.validate_channel("1.35") == "1.35/stable"
+    assert charm_config.validate_channel("1.36/stable") == "1.36/stable"
+
+    with pytest.raises(ValueError, match="channel must be one of"):
+        charm_config.validate_channel("1.27/stable")
 
 
 @mock.patch("util.ensure_call")

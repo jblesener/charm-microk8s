@@ -17,6 +17,7 @@ def test_install(role, e: Environment):
     e.harness.update_config(
         {
             "role": role,
+            "channel": "1.35",
             "containerd_http_proxy": "fakehttpproxy",
             "containerd_https_proxy": "fakehttpsproxy",
             "containerd_no_proxy": "fakenoproxy",
@@ -25,7 +26,7 @@ def test_install(role, e: Environment):
     e.harness.begin_with_initial_hooks()
 
     e.util.install_required_packages.assert_called_once_with()
-    e.microk8s.install.assert_called_once_with()
+    e.microk8s.install.assert_called_once_with("1.35")
     e.microk8s.set_containerd_proxy_options.assert_called_with(
         "fakehttpproxy", "fakehttpsproxy", "fakenoproxy"
     )
@@ -58,6 +59,14 @@ def test_block_on_role_change(e: Environment):
 
     e.harness.update_config({"role": "worker"})
     assert isinstance(e.harness.charm.model.unit.status, ops.model.WaitingStatus)
+
+
+def test_block_on_invalid_channel(e: Environment):
+    e.harness.update_config({"channel": "1.27/stable"})
+    e.harness.begin_with_initial_hooks()
+
+    assert isinstance(e.harness.charm.model.unit.status, ops.model.BlockedStatus)
+    e.microk8s.install.assert_not_called()
 
 
 def test_remove(e: Environment):
@@ -149,12 +158,26 @@ def test_config_extra_sans(e: Environment, role: str, has_joined: bool):
 
 @pytest.mark.parametrize("role", ["", "control-plane", "worker"])
 def test_charm_upgrade(e: Environment, role: str):
-    e.harness.update_config({"role": role, "automatic_certificate_reissue": True})
+    e.harness.update_config(
+        {"role": role, "automatic_certificate_reissue": True, "channel": "1.34/stable"}
+    )
     e.harness.begin_with_initial_hooks()
 
     e.harness.charm.on.upgrade_charm.emit()
 
-    e.microk8s.upgrade.assert_called_once_with()
+    e.microk8s.upgrade.assert_called_once_with(
+        "1.34/stable", after_refresh=e.harness.charm._after_microk8s_refresh
+    )
+
+
+def test_charm_upgrade_blocks_downgrade(e: Environment):
+    e.harness.update_config({"channel": "1.35/stable"})
+    e.harness.begin_with_initial_hooks()
+    e.microk8s.upgrade.side_effect = ValueError("cannot downgrade MicroK8s")
+
+    e.harness.charm.on.upgrade_charm.emit()
+
+    assert e.harness.charm.unit.status == ops.model.BlockedStatus("cannot downgrade MicroK8s")
 
 
 @pytest.mark.parametrize("role", ["", "control-plane"])
