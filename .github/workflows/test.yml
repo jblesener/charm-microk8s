@@ -12,7 +12,7 @@ concurrency:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out code
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
@@ -37,7 +37,7 @@ jobs:
       matrix:
         control_plane: [1, 3]
         workers: [1]
-        series: [focal, jammy]
+        series: [jammy, noble, resolute]
         juju: [3.1]
     steps:
       - name: Checking out repo

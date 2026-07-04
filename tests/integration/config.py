@@ -30,8 +30,8 @@ MK8S_CLUSTER_SIZES = json.loads(os.getenv("MK8S_CLUSTER_SIZES", "[[1, 1]]"))
 
 # MK8S_SERIES is a space-separated list of series to test with.
 # A separate test is run for each series.
-#   - 'focal jammy'             <-- test with 'focal' and 'jammy'
-#   - 'focal'                   <-- test with 'focal' only
+#   - 'jammy noble resolute'     <-- test with 'jammy', 'noble' and 'resolute'
+#   - 'jammy'                   <-- test with 'jammy' only
 #   - ''                        <-- test with default distro
 MK8S_SERIES = os.getenv("MK8S_SERIES", "").split(" ")
 

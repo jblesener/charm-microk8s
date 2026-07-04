@@ -23,8 +23,9 @@ issues:
 website: https://microk8s.io
 
 series:
-  - focal
   - jammy
+  - noble
+  - resolute
 
 peers:
   peer:

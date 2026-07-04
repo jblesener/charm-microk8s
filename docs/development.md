@@ -33,7 +33,7 @@ The default configuration for the integration tests is to build the charm and ru
 When making local changes and deploying the charm:
 
 ```bash
-# build the charm (microk8s_ubuntu-20.04-amd64_ubuntu-22.04-amd64.charm)
+# build the charm (microk8s_ubuntu-22.04-amd64_ubuntu-24.04-amd64_ubuntu-26.04-amd64.charm)
 sudo charmcraft pack --destructive-mode
 
 # refresh the application 'application' from the local charm file
@@ -70,11 +70,11 @@ microk8s/0          active    idle   0        172.16.101.175  80/tcp,443/tcp,164
 microk8s/5*         active    idle   8        172.16.101.10   80/tcp,443/tcp,16443/tcp  node is ready
 
 Machine  State    Address         Inst id                               Series  AZ    Message
-0        started  172.16.101.175  a84a53cd-ac0d-41be-b003-f13b8057b630  focal   nova  ACTIVE
-3        started  172.16.101.197  5992965a-1a53-4bb6-a870-4c71f9850eca  focal   nova  ACTIVE
-4        started  172.16.101.114  c07c1841-7330-49bd-961b-66f824ee08ea  focal   nova  ACTIVE
-5        started  172.16.101.148  c62373d9-a712-4eab-837d-83ed83fb8ffe  focal   nova  ACTIVE
-8        started  172.16.101.10   51f75da0-e404-41e9-b45b-9e77f8ecec78  focal   nova  ACTIVE
+0        started  172.16.101.175  a84a53cd-ac0d-41be-b003-f13b8057b630  jammy   nova  ACTIVE
+3        started  172.16.101.197  5992965a-1a53-4bb6-a870-4c71f9850eca  jammy   nova  ACTIVE
+4        started  172.16.101.114  c07c1841-7330-49bd-961b-66f824ee08ea  jammy   nova  ACTIVE
+5        started  172.16.101.148  c62373d9-a712-4eab-837d-83ed83fb8ffe  jammy   nova  ACTIVE
+8        started  172.16.101.10   51f75da0-e404-41e9-b45b-9e77f8ecec78  jammy   nova  ACTIVE
 
 Relation provider           Requirer                  Interface      Type     Message
 microk8s-worker:peer        microk8s-worker:peer      microk8s-peer  peer
@@ -82,11 +82,11 @@ microk8s:microk8s-provides  microk8s-worker:microk8s  microk8s-info  regular
 microk8s:peer               microk8s:peer             microk8s-peer  peer
 
 NAME                    STATUS   ROLES    AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-juju-77cee6-default-8   Ready    <none>   18m   v1.26.4   172.16.101.10    <none>        Ubuntu 20.04.6 LTS   5.4.0-148-generic   containerd://1.6.15
-juju-77cee6-default-3   Ready    <none>   80m   v1.26.4   172.16.101.197   <none>        Ubuntu 20.04.6 LTS   5.4.0-148-generic   containerd://1.6.15
-juju-77cee6-default-5   Ready    <none>   82m   v1.26.4   172.16.101.148   <none>        Ubuntu 20.04.6 LTS   5.4.0-148-generic   containerd://1.6.15
-juju-77cee6-default-0   Ready    <none>   80m   v1.26.4   172.16.101.175   <none>        Ubuntu 20.04.6 LTS   5.4.0-148-generic   containerd://1.6.15
-juju-77cee6-default-4   Ready    <none>   82m   v1.26.4   172.16.101.114   <none>        Ubuntu 20.04.6 LTS   5.4.0-148-generic   containerd://1.6.15
+juju-77cee6-default-8   Ready    <none>   18m   v1.26.4   172.16.101.10    <none>        Ubuntu 22.04.5 LTS   5.15.0-148-generic  containerd://1.6.15
+juju-77cee6-default-3   Ready    <none>   80m   v1.26.4   172.16.101.197   <none>        Ubuntu 22.04.5 LTS   5.15.0-148-generic  containerd://1.6.15
+juju-77cee6-default-5   Ready    <none>   82m   v1.26.4   172.16.101.148   <none>        Ubuntu 22.04.5 LTS   5.15.0-148-generic  containerd://1.6.15
+juju-77cee6-default-0   Ready    <none>   80m   v1.26.4   172.16.101.175   <none>        Ubuntu 22.04.5 LTS   5.15.0-148-generic  containerd://1.6.15
+juju-77cee6-default-4   Ready    <none>   82m   v1.26.4   172.16.101.114   <none>        Ubuntu 22.04.5 LTS   5.15.0-148-generic  containerd://1.6.15
 - Address: 172.16.101.175:19001
   ID: 10110992713028004743
   Role: 0
