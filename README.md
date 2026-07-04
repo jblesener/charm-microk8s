@@ -1,5 +1,6 @@
-# 🚧 Deprecation Notice 🚧
-This charm is no longer under active development and there will be no further updates. For similar functionality, consider the currently-in-development [‘k8s’ charm](https://charmhub.io/k8s).
+# Anti-deprecation notice
+
+This charm is a fork of the original charm-microk8s repo and publishes under the charm name ```microk8s-ng```. The objective of this fork is add supported versions of microk8s to it to act as a medium-term bridge for people/orgs who have not migrated to the newer ```k8s``` charm.
 
 # MicroK8s
 

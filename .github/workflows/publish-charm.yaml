@@ -1,0 +1,62 @@
+name: Publish microk8s-ng charm
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: "Run the build with tmate debugging enabled"
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish to Charmhub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rename charm for upload
+        run: |
+          grep -qx 'name: microk8s' metadata.yaml
+          sed -i 's/^name: microk8s$/name: microk8s-ng/' metadata.yaml
+
+      - name: Pack charm
+        id: pack
+        uses: canonical/craft-actions/charmcraft/pack@main
+
+      - name: Normalize charm paths
+        id: charm-paths
+        run: |
+          charms="${{ steps.pack.outputs.charms }}"
+          charms="$(printf '%s' "$charms" | xargs)"
+          echo "charms=${charms// /,}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload charm to Charmhub
+        uses: canonical/charming-actions/upload-charm@2.7.0
+        with:
+          credentials: "${{ secrets.CHARMCRAFT_AUTH }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          upload-image: "true"
+          channel: "latest/edge"
+          destructive-mode: "false"
+          built-charm-path: "${{ steps.charm-paths.outputs.charms }}"
+
+      - name: Archive charm
+        uses: actions/upload-artifact@v4
+        with:
+          name: "microk8s-ng"
+          path: "*.charm"
+          retention-days: 5
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
