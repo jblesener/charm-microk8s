@@ -16,5 +16,7 @@ parts:
     python-requirements:
       - requirements.txt
     override-build: |
-      PIP_BREAK_SYSTEM_PACKAGES=1 PIP_NO_BINARY= python3 -m pip install --upgrade "pip>=22.3"
+      if ! python3 -m pip --help | grep -q -- "--python"; then
+        PIP_BREAK_SYSTEM_PACKAGES=1 PIP_NO_BINARY= python3 -m pip install --ignore-installed --upgrade "pip>=22.3"
+      fi
       craftctl default
