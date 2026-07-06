@@ -13,7 +13,7 @@ description: |
   This charm is a 3rd party maintained fork of the original charm-microk8s repository and publishes under the charm name microk8s-ng. It continues support for newer MicroK8s releases as a medium-term bridge for users who have not migrated to the newer k8s charm.
 
 maintainers:
-  - John Blesener <https://github.com/jblesener>
+  - https://github.com/jblesener
 
 docs: https://discourse.charmhub.io/t/charmed-microk8s-documentation/10993
 source:
