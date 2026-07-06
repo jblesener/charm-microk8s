@@ -3,10 +3,10 @@
 #
 
 # Snap store channel to use when installing MicroK8s by default.
-SNAP_CHANNEL = "latest/edge"
+SNAP_CHANNEL = "1.35/stable"
 
 MICROK8S_STABLE_CHANNELS = tuple(f"1.{minor}/stable" for minor in range(28, 37))
-SUPPORTED_MICROK8S_CHANNELS = (SNAP_CHANNEL, *MICROK8S_STABLE_CHANNELS)
+SUPPORTED_MICROK8S_CHANNELS = ("latest/edge", *MICROK8S_STABLE_CHANNELS)
 
 
 def normalize_channel(channel: str) -> str:

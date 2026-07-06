@@ -89,7 +89,8 @@ def test_microk8s_upgrade_blocks_downgrade(
 
 
 def test_microk8s_channel_validation():
-    assert charm_config.validate_channel("") == "latest/edge"
+    assert charm_config.validate_channel("") == "1.35/stable"
+    assert charm_config.validate_channel("latest/edge") == "latest/edge"
     assert charm_config.validate_channel("1.28/stable") == "1.28/stable"
     assert charm_config.validate_channel("1.35") == "1.35/stable"
     assert charm_config.validate_channel("1.36/stable") == "1.36/stable"

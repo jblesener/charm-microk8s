@@ -22,8 +22,8 @@ options:
 
       Supported values are latest/edge and Kubernetes stable tracks from
       1.28/stable through 1.36/stable. Shorthand stable tracks such as
-      "1.34" are accepted and normalized to "1.34/stable".
-    default: "latest/edge"
+      "1.35" are accepted and normalized to "1.35/stable".
+    default: "1.35/stable"
     type: string
   containerd_http_proxy:
     description: |
