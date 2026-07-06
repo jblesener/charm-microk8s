@@ -321,7 +321,7 @@ def test_relation_kubernetes_info(e: Environment, role: str, is_leader: bool, ha
     rel_id = e.harness.add_relation("kubernetes-info", "ceph-csi")
     e.harness.add_relation_unit(rel_id, "ceph-csi/0")
 
-    rel_data = e.harness.get_relation_data(rel_id, "microk8s")
+    rel_data = e.harness.get_relation_data(rel_id, e.harness.charm.app.name)
 
     # the leader control plane node sets relation data
     if role != "worker" and is_leader:

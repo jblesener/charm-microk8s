@@ -4,8 +4,8 @@
 
 ```bash
 # deploy 3 control plane nodes, 3 worker nodes
-juju deploy microk8s -n 3
-juju deploy microk8s microk8s-worker -n 3 --config role=worker
+juju deploy microk8s-ng microk8s -n 3
+juju deploy microk8s-ng microk8s-worker -n 3 --config role=worker
 
 # connect worker nodes to the control plane
 juju integrate microk8s:microk8s-provides microk8s-worker:microk8s

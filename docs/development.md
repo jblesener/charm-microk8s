@@ -33,11 +33,11 @@ The default configuration for the integration tests is to build the charm and ru
 When making local changes and deploying the charm:
 
 ```bash
-# build the charm (microk8s_ubuntu-22.04-amd64_ubuntu-24.04-amd64_ubuntu-26.04-amd64.charm)
+# build the charm (microk8s-ng_ubuntu-22.04-amd64_ubuntu-24.04-amd64_ubuntu-26.04-amd64.charm)
 sudo charmcraft pack --destructive-mode
 
 # refresh the application 'application' from the local charm file
-juju refresh microk8s --path ./microk8s*.charm
+juju refresh microk8s --path ./microk8s-ng*.charm
 ```
 
 Note that blocked units will not be refreshed automatically, you will have to do one of the following:

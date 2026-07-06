@@ -4,14 +4,14 @@
 ---
 applications:
   microk8s:
-    charm: microk8s
+    charm: microk8s-ng
     channel: edge
     scale: 1
     options:
       role: control-plane
     constraints: 'mem=4G root-disk=20G'
   microk8s-worker:
-    charm: microk8s
+    charm: microk8s-ng
     channel: edge
     scale: 1
     options:

@@ -21,12 +21,12 @@ jobs:
       - name: Build charm
         run: |
           charmcraft pack -v --destructive-mode
-          mv microk8s*.charm microk8s.charm
+          mv microk8s-ng*.charm microk8s-ng.charm
       - name: Upload charm
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: microk8s.charm
-          path: ./microk8s.charm
+          name: microk8s-ng.charm
+          path: ./microk8s-ng.charm
 
   test-cluster:
     name: Cluster - ${{ matrix.control_plane}}cp${{ matrix.workers}}w - ${{ matrix.series }} - juju ${{ matrix.juju }}
@@ -55,7 +55,7 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s.charm
+          name: microk8s-ng.charm
           path: build
       - name: Install tox
         run: |
@@ -65,7 +65,7 @@ jobs:
           juju add-model testing
           export MK8S_SERIES='${{ matrix.series }}'
           export MK8S_CLUSTER_SIZES='[[${{ matrix.control_plane }}, ${{ matrix.workers }}]]'
-          export MK8S_CHARM=./build/microk8s.charm
+          export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
           sg lxd -c 'tox -e integration-${{ matrix.juju }} -- --model testing -k test_microk8s_cluster'
       - name: Retrieve artifacts
@@ -105,7 +105,7 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s.charm
+          name: microk8s-ng.charm
           path: build
       - name: Install tox
         run: |
@@ -114,7 +114,7 @@ jobs:
         run: |
           juju add-model testing
           export MK8S_SERIES='${{ matrix.series }}'
-          export MK8S_CHARM=./build/microk8s.charm
+          export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
           sg lxd -c 'tox -e integration-${{ matrix.juju }} -- --model testing -k test_metallb_traefik'
       - name: Retrieve artifacts
@@ -154,7 +154,7 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s.charm
+          name: microk8s-ng.charm
           path: build
       - name: Install tox
         run: |
@@ -163,7 +163,7 @@ jobs:
         run: |
           juju add-model testing
           export MK8S_SERIES='${{ matrix.series }}'
-          export MK8S_CHARM=./build/microk8s.charm
+          export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
           sg lxd -c 'tox -e integration-${{ matrix.juju }} -- --model testing -k test_cos'
       - name: Retrieve artifacts
@@ -203,7 +203,7 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s.charm
+          name: microk8s-ng.charm
           path: build
       - name: Install tox
         run: |
@@ -212,7 +212,7 @@ jobs:
         run: |
           juju add-model testing
           export MK8S_SERIES='${{ matrix.series }}'
-          export MK8S_CHARM=./build/microk8s.charm
+          export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
           sg lxd -c 'tox -e integration-${{ matrix.juju }} -- --model testing -k test_coredns'
       - name: Retrieve artifacts
@@ -252,7 +252,7 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s.charm
+          name: microk8s-ng.charm
           path: build
       - name: Install tox
         run: |
@@ -261,7 +261,7 @@ jobs:
         run: |
           juju add-model testing
           export MK8S_SERIES='${{ matrix.series }}'
-          export MK8S_CHARM=./build/microk8s.charm
+          export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
           sg lxd -c 'tox -e integration-${{ matrix.juju }} -- --model testing -k test_ceph_csi'
       - name: Retrieve artifacts

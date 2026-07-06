@@ -9,7 +9,7 @@ This section describes how to deploy a single-node MicroK8s cluster with COS, an
 ```bash
 # Add a machine model and deploy MicroK8s
 juju add-model microk8s
-juju deploy microk8s --channel edge --config hostpath_storage=true --constraints 'mem=8G'
+juju deploy microk8s-ng microk8s --channel edge --config hostpath_storage=true --constraints 'mem=8G'
 juju expose microk8s
 
 # Add MicroK8s as Kubernetes cloud to Juju

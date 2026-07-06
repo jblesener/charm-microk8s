@@ -24,11 +24,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Rename charm for upload
-        run: |
-          grep -qx 'name: microk8s' metadata.yaml
-          sed -i 's/^name: microk8s$/name: microk8s-ng/' metadata.yaml
-
       - name: Pack charm
         id: pack
         uses: canonical/craft-actions/charmcraft/pack@main

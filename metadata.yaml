@@ -1,24 +1,26 @@
 ##
 ## Copyright 2023 Canonical, Ltd.
 ##
-name: microk8s
+name: microk8s-ng
 
-display-name: MicroK8s
+display-name: MicroK8s-NG
 
 summary: MicroK8s is a small, fast, single-package Kubernetes for developers, IoT and edge.
 
 description: |
   MicroK8s is a small, fast, secure, single node Kubernetes that installs on just about any Linux box. Use it for offline development, prototyping, testing, or use it on a VM as a small, cheap, reliable K8s for CI/CD. It's also a great K8s for appliances - develop your IoT apps for k8s and deploy them to MicroK8s on your boxes.
 
+  This charm is a 3rd party maintained fork of the original charm-microk8s repository and publishes under the charm name microk8s-ng. It continues support for newer MicroK8s releases as a medium-term bridge for users who have not migrated to the newer k8s charm.
+
 maintainers:
-  - The MicroK8s team <microk8s@canonical.com>
+  - John Blesener <https://github.com/jblesener>
 
 docs: https://discourse.charmhub.io/t/charmed-microk8s-documentation/10993
 source:
-  - https://github.com/canonical/charm-microk8s
+  - https://github.com/jblesener/charm-microk8s
   - https://github.com/canonical/microk8s
 issues:
-  - https://github.com/canonical/charm-microk8s/issues
+  - https://github.com/jblesener/charm-microk8s/issues
   - https://github.com/canonical/microk8s/issues
 website: https://microk8s.io
 

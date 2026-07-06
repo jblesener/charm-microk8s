@@ -3,8 +3,8 @@
 The `Publish microk8s-ng charm` GitHub Actions workflow builds this charm with
 the Charmhub package name `microk8s-ng` and publishes it to `latest/edge`.
 
-The committed `metadata.yaml` remains named `microk8s`. The workflow changes
-the name only inside the GitHub Actions checkout before packing the charm.
+The committed `metadata.yaml` uses the `microk8s-ng` package name. The workflow
+verifies that name before packing the charm.
 
 ## Charmhub setup
 

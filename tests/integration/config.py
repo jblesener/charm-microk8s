@@ -5,13 +5,13 @@ import json
 import os
 
 # MK8S_CHARM is the charm to deploy. Supported values:
-#   - 'ch:microk8s'             <-- install charm 'microk8s' from CharmHub
-#   - './microk8s.charm'        <-- install from local path
+#   - 'ch:microk8s-ng'          <-- install charm 'microk8s-ng' from CharmHub
+#   - './microk8s-ng.charm'     <-- install from local path
 #   - 'build'                   <-- build charm while testing
 MK8S_CHARM = os.getenv("MK8S_CHARM", "build")
 
 # MK8S_CHARM_CHANNEL is the CharmHub channel to install from.
-#   - 'edge'                    <-- identical to 'juju deploy microk8s --channel edge'
+#   - 'edge'                    <-- identical to 'juju deploy microk8s-ng --channel edge'
 #   - ''                        <-- when installing from local charm, set to empty
 MK8S_CHARM_CHANNEL = os.getenv("MK8S_CHARM_CHANNEL", "")
 

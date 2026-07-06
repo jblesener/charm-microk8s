@@ -15,7 +15,10 @@ cp.attr(rankdir="LR", size="20,30")
 
 cp.attr("node", shape="none")
 cp.node("text1", "MicroK8s Control Plane charm")
-cp.node("", "juju deploy microk8s\nOR\njuju deploy microk8s --config role=control-plane")
+cp.node(
+    "",
+    "juju deploy microk8s-ng microk8s\nOR\njuju deploy microk8s-ng microk8s --config role=control-plane",
+)
 
 cp.attr("node", shape="doublecircle")
 cp.node("deploy", "deploy:\ninstalled=false")
@@ -66,7 +69,7 @@ w.attr(rankdir="LR", size="20,30")
 
 w.attr("node", shape="none")
 w.node("text1", "MicroK8s Worker charm")
-w.node("", "juju deploy microk8s --config role=worker")
+w.node("", "juju deploy microk8s-ng microk8s-worker --config role=worker")
 
 w.attr("node", shape="doublecircle")
 w.node("deploy", "deploy:\ninstalled=false")
