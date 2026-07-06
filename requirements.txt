@@ -1,4 +1,6 @@
 cosl==0.0.7
+importlib-metadata==8.7.0
+opentelemetry-api==1.41.1
 ops==2.23.2
 pydantic==1.10.26
 pyyaml==6.0.3
@@ -7,3 +9,4 @@ tomli-w==1.0.0
 typing-extensions==4.13.2
 urllib3==1.26.18
 websocket-client==1.9.0
+zipp==3.23.0
