@@ -1,0 +1,27 @@
+name: Select test charm
+description: Normalize the built Ubuntu 22.04 amd64 charm to the path used by integration tests.
+
+inputs:
+  artifact-dir:
+    description: Directory containing downloaded charm artifacts.
+    required: false
+    default: build
+  output-path:
+    description: Path where the selected charm should be copied.
+    required: false
+    default: build/microk8s-ng.charm
+
+runs:
+  using: composite
+  steps:
+    - name: Select Ubuntu 22.04 amd64 charm
+      shell: bash
+      run: |
+        shopt -s nullglob
+        charms=( "${{ inputs.artifact-dir }}"/*22.04*amd64*.charm )
+        if (( ${#charms[@]} != 1 )); then
+          echo "Expected exactly one Ubuntu 22.04 amd64 charm, found ${#charms[@]}" >&2
+          printf '%s\n' "${{ inputs.artifact-dir }}"/*.charm >&2
+          exit 1
+        fi
+        cp "${charms[0]}" "${{ inputs.output-path }}"

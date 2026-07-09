@@ -1,0 +1,26 @@
+name: Build charm
+description: Build all configured charm artifacts.
+
+outputs:
+  charms:
+    description: Comma-separated list of built charm paths.
+    value: ${{ steps.charm-paths.outputs.charms }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build charm
+      id: pack
+      uses: canonical/craft-actions/charmcraft/pack@main
+
+    - name: Normalize charm paths
+      id: charm-paths
+      shell: bash
+      run: |
+        charms="${{ steps.pack.outputs.charms }}"
+        charms="$(printf '%s' "$charms" | xargs)"
+        if [[ -z "$charms" ]]; then
+          echo "No charm artifacts were built" >&2
+          exit 1
+        fi
+        echo "charms=${charms// /,}" >> "$GITHUB_OUTPUT"

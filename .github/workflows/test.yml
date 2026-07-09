@@ -16,17 +16,13 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-      - name: Install charmcraft
-        run: sudo snap install charmcraft --classic
       - name: Build charm
-        run: |
-          charmcraft pack -v --destructive-mode --platform ubuntu@22.04:amd64
-          mv microk8s-ng*.charm microk8s-ng.charm
+        uses: ./.github/actions/build-charm
       - name: Upload charm
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: microk8s-ng.charm
-          path: ./microk8s-ng.charm
+          name: microk8s-ng-charms
+          path: ./*.charm
 
   test-cluster:
     name: Cluster - ${{ matrix.control_plane}}cp${{ matrix.workers}}w - ${{ matrix.series }} - juju ${{ matrix.juju }}
@@ -55,8 +51,10 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s-ng.charm
+          name: microk8s-ng-charms
           path: build
+      - name: Select test charm
+        uses: ./.github/actions/select-test-charm
       - name: Install tox
         run: |
           pip3 install tox
@@ -109,8 +107,10 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s-ng.charm
+          name: microk8s-ng-charms
           path: build
+      - name: Select test charm
+        uses: ./.github/actions/select-test-charm
       - name: Install tox
         run: |
           pip3 install tox
@@ -162,8 +162,10 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s-ng.charm
+          name: microk8s-ng-charms
           path: build
+      - name: Select test charm
+        uses: ./.github/actions/select-test-charm
       - name: Install tox
         run: |
           pip3 install tox
@@ -215,8 +217,10 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s-ng.charm
+          name: microk8s-ng-charms
           path: build
+      - name: Select test charm
+        uses: ./.github/actions/select-test-charm
       - name: Install tox
         run: |
           pip3 install tox
@@ -268,8 +272,10 @@ jobs:
       - name: Fetch charm
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: microk8s-ng.charm
+          name: microk8s-ng-charms
           path: build
+      - name: Select test charm
+        uses: ./.github/actions/select-test-charm
       - name: Install tox
         run: |
           pip3 install tox

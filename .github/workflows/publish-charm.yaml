@@ -1,8 +1,10 @@
 name: Publish microk8s-ng charm
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Integration Tests"]
     branches: [master]
+    types: [completed]
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -12,28 +14,57 @@ on:
         default: false
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
   publish:
     name: Publish to Charmhub
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           fetch-depth: 0
 
+      - name: Checkout tested revision
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        if: ${{ github.event_name == 'workflow_run' }}
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
+
       - name: Pack charm
-        id: pack
-        uses: canonical/craft-actions/charmcraft/pack@main
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/build-charm
+
+      - name: Collect manually built charms
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          mkdir -p charms
+          cp ./*.charm charms/
+
+      - name: Download tested charm artifacts
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: microk8s-ng-charms
+          path: charms
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Normalize charm paths
         id: charm-paths
         run: |
-          charms="${{ steps.pack.outputs.charms }}"
-          charms="$(printf '%s' "$charms" | xargs)"
-          echo "charms=${charms// /,}" >> "$GITHUB_OUTPUT"
+          shopt -s nullglob
+          charms=( charms/*.charm )
+          if (( ${#charms[@]} == 0 )); then
+            echo "No charm artifacts were found" >&2
+            exit 1
+          fi
+          echo "charms=$(IFS=,; echo "${charms[*]}")" >> "$GITHUB_OUTPUT"
 
       - name: Upload charm to Charmhub
         uses: canonical/charming-actions/upload-charm@2.7.0
@@ -49,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: "microk8s-ng"
-          path: "*.charm"
+          path: "charms/*.charm"
           retention-days: 5
 
       - name: Setup tmate session

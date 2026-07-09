@@ -1,10 +1,11 @@
 # Publishing microk8s-ng
 
-The `Publish microk8s-ng charm` GitHub Actions workflow builds this charm with
-the Charmhub package name `microk8s-ng` and publishes it to `latest/edge`.
+The `Integration Tests` GitHub Actions workflow builds this charm with the
+Charmhub package name `microk8s-ng`. After those tests pass on `master`, the
+`Publish microk8s-ng charm` workflow publishes the tested charm artifacts to
+`latest/edge`.
 
-The committed `metadata.yaml` uses the `microk8s-ng` package name. The workflow
-verifies that name before packing the charm.
+The committed `metadata.yaml` uses the `microk8s-ng` package name.
 
 ## Charmhub setup
 
@@ -50,8 +51,9 @@ rm charmcraft-auth.txt
 
 ## Publishing
 
-The workflow publishes automatically on pushes to `master`. It can also be run
-manually from the GitHub Actions tab with `workflow_dispatch`.
+The workflow publishes automatically after the `Integration Tests` workflow
+passes on `master`. It can also be run manually from the GitHub Actions tab with
+`workflow_dispatch`; manual runs build fresh charm artifacts before publishing.
 
 Manual runs include an optional `debug_enabled` input that opens a tmate session
 if the workflow reaches the debug step.
