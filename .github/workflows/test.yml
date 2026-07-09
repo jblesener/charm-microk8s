@@ -20,7 +20,7 @@ jobs:
         run: sudo snap install charmcraft --classic
       - name: Build charm
         run: |
-          charmcraft pack -v --destructive-mode
+          charmcraft pack -v --destructive-mode --platform ubuntu@22.04:amd64
           mv microk8s-ng*.charm microk8s-ng.charm
       - name: Upload charm
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
