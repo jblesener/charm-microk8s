@@ -7,79 +7,80 @@ import json
 import logging
 
 import config
-import pytest
-from conftest import microk8s_kubernetes_cloud_and_model, run_unit
-from juju.application import Application
-from juju.unit import Unit
-from pytest_operator.plugin import OpsTest
+import jubilant
+from conftest import (
+    deploy_microk8s,
+    get_unit_name,
+    microk8s_kubernetes_cloud_and_model,
+    run_unit,
+    wait_for_apps,
+)
 
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.abort_on_fail
-async def test_cos(e: OpsTest, charm_config: dict):
+def test_cos(juju: jubilant.Juju, charm_config: dict):
     # deploy microk8s
-    if "microk8s" not in e.model.applications:
-        await e.model.deploy(
-            config.MK8S_CHARM,
-            application_name="microk8s",
-            config={**charm_config, "hostpath_storage": "true"},
-            channel=config.MK8S_CHARM_CHANNEL,
-            constraints=config.MK8S_CONSTRAINTS,
+    if "microk8s" not in juju.status().apps:
+        deploy_microk8s(
+            juju,
+            app="microk8s",
+            charm_config=charm_config,
+            extra_config={"hostpath_storage": True},
             # NOTE(neoaggelos/2023-09-17): grafana-agent needs libssl.so.3.
             series="jammy",
         )
-        await e.model.wait_for_idle(["microk8s"], timeout=20 * 60)
+        wait_for_apps(juju, ["microk8s"], timeout=20 * 60)
 
-    if "grafana-agent" not in e.model.applications:
-        await e.model.deploy(
+    if "grafana-agent" not in juju.status().apps:
+        juju.deploy(
             config.MK8S_GRAFANA_AGENT_CHARM,
             channel=config.MK8S_GRAFANA_AGENT_CHANNEL,
-            application_name="grafana-agent",
+            app="grafana-agent",
         )
-        await e.model.add_relation("microk8s", "grafana-agent")
-        await e.model.wait_for_idle(["microk8s", "grafana-agent"], raise_on_error=False)
+        juju.integrate("microk8s", "grafana-agent")
+        wait_for_apps(juju, ["microk8s", "grafana-agent"], raise_on_error=False)
 
-    microk8s_unit: Unit = e.model.applications["microk8s"].units[0]
-    grafana_agent_app: Application = e.model.applications["grafana-agent"]
+    microk8s_unit = get_unit_name(juju, "microk8s")
 
     # bootstrap a juju cloud on the deployed microk8s
-    async with microk8s_kubernetes_cloud_and_model(e, "microk8s") as (k8s_model, k8s_model_name):
-        with e.model_context(k8s_model):
-            LOG.info("Deploy MetalLB")
-            await e.model.deploy(
-                config.MK8S_METALLB_CHARM,
-                application_name="metallb",
-                config={"iprange": "10.42.42.42-10.42.42.42"},
-                channel=config.MK8S_METALLB_CHANNEL,
-            )
-            await e.model.wait_for_idle(["metallb"])
+    with microk8s_kubernetes_cloud_and_model(juju, "microk8s") as (k8s_juju, k8s_model_name):
+        LOG.info("Deploy MetalLB")
+        k8s_juju.deploy(
+            config.MK8S_METALLB_CHARM,
+            app="metallb",
+            config={"iprange": "10.42.42.42-10.42.42.42"},
+            channel=config.MK8S_METALLB_CHANNEL,
+        )
+        wait_for_apps(k8s_juju, ["metallb"])
 
-            LOG.info("Deploy cos-lite")
-            await e.model.deploy(
-                config.MK8S_COS_BUNDLE,
-                channel=config.MK8S_COS_CHANNEL,
-                trust=True,
-            )
-            await e.model.wait_for_idle(["prometheus"], timeout=30 * 60)
+        LOG.info("Deploy cos-lite")
+        k8s_juju.deploy(
+            config.MK8S_COS_BUNDLE,
+            channel=config.MK8S_COS_CHANNEL,
+            trust=True,
+        )
+        wait_for_apps(k8s_juju, ["prometheus"], timeout=30 * 60)
 
-            LOG.info("Create offers for cos-lite endpoints")
-            await e.model.create_offer("prometheus:receive-remote-write", "prometheus")
-            await e.model.create_offer("loki:logging", "loki")
-            await e.model.create_offer("grafana:grafana-dashboard", "grafana")
+        LOG.info("Create offers for cos-lite endpoints")
+        k8s_juju.offer("prometheus", endpoint="receive-remote-write", name="prometheus")
+        k8s_juju.offer("loki", endpoint="logging", name="loki")
+        k8s_juju.offer("grafana", endpoint="grafana-dashboard", name="grafana")
 
         try:
             LOG.info("Consume cos-lite and relate with grafana-agent")
-            await e.model.consume(f"admin/{k8s_model_name}.prometheus", "prometheus")
-            await e.model.consume(f"admin/{k8s_model_name}.loki", "loki")
-            await e.model.consume(f"admin/{k8s_model_name}.grafana", "grafana")
-            await e.model.add_relation("grafana-agent", "prometheus")
-            await e.model.add_relation("grafana-agent", "loki")
-            await e.model.add_relation("grafana-agent", "grafana")
+            juju.consume(f"{k8s_model_name}.prometheus", "prometheus", owner="admin")
+            juju.consume(f"{k8s_model_name}.loki", "loki", owner="admin")
+            juju.consume(f"{k8s_model_name}.grafana", "grafana", owner="admin")
+            juju.integrate("grafana-agent", "prometheus")
+            juju.integrate("grafana-agent", "loki")
+            juju.integrate("grafana-agent", "grafana")
 
-            await e.model.wait_for_idle(["microk8s", "grafana-agent"], timeout=20 * 60)
+            wait_for_apps(juju, ["microk8s", "grafana-agent"], timeout=20 * 60)
 
-            hostname = microk8s_unit.machine.hostname
+            rc, hostname, stderr = run_unit(juju, microk8s_unit, "hostname")
+            assert rc == 0, f"failed to retrieve unit hostname: {stderr}"
+            hostname = hostname.strip()
             for query in [
                 'up{job="kubelet", node="%s", metrics_path="/metrics"} > 0' % hostname,
                 'up{job="kubelet", node="%s", metrics_path="/metrics/cadvisor"} > 0' % hostname,
@@ -92,7 +93,8 @@ async def test_cos(e: OpsTest, charm_config: dict):
             ]:
                 while True:
                     try:
-                        rc, stdout, stderr = await run_unit(
+                        rc, stdout, stderr = run_unit(
+                            juju,
                             microk8s_unit,
                             f"""
                             curl --silent \
@@ -118,12 +120,12 @@ async def test_cos(e: OpsTest, charm_config: dict):
             LOG.info("Success! Starting teardown of the environment")
 
         finally:
-            await grafana_agent_app.remove_relation("grafana-dashboards-provider", "grafana")
-            await grafana_agent_app.remove_relation("send-remote-write", "prometheus")
-            await grafana_agent_app.remove_relation("logging-consumer", "loki")
-            await e.model.wait_for_idle(["grafana-agent"])
+            juju.remove_relation("grafana-agent:grafana-dashboards-provider", "grafana", force=True)
+            juju.remove_relation("grafana-agent:send-remote-write", "prometheus", force=True)
+            juju.remove_relation("grafana-agent:logging-consumer", "loki", force=True)
+            wait_for_apps(juju, ["grafana-agent"])
 
-            await e.model.remove_saas("prometheus")
-            await e.model.remove_saas("loki")
-            await e.model.remove_saas("grafana")
-            await e.model.wait_for_idle(["grafana-agent"])
+            juju.cli("remove-saas", "prometheus")
+            juju.cli("remove-saas", "loki")
+            juju.cli("remove-saas", "grafana")
+            wait_for_apps(juju, ["grafana-agent"])

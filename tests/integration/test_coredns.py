@@ -6,59 +6,57 @@
 import logging
 
 import config
-import pytest
-from conftest import microk8s_kubernetes_cloud_and_model, run_unit
-from juju.application import Application
-from juju.unit import Unit
-from pytest_operator.plugin import OpsTest
+import jubilant
+from conftest import (
+    deploy_microk8s,
+    get_unit_name,
+    microk8s_kubernetes_cloud_and_model,
+    run_unit,
+    wait_for_apps,
+)
 
 LOG = logging.getLogger(__name__)
 
 DNS_TEST = "microk8s kubectl run -it --rm debug --image=busybox:1.28.4 --restart=Never -- nslookup google.com"
 
 
-@pytest.mark.abort_on_fail
-async def test_core_dns(e: OpsTest, charm_config: dict):
+def test_core_dns(juju: jubilant.Juju, charm_config: dict):
     # deploy microk8s
-    if "microk8s" not in e.model.applications:
-        await e.model.deploy(
-            config.MK8S_CHARM,
-            application_name="microk8s",
-            config={**charm_config, "hostpath_storage": "true"},
-            channel=config.MK8S_CHARM_CHANNEL,
-            constraints=config.MK8S_CONSTRAINTS,
+    if "microk8s" not in juju.status().apps:
+        deploy_microk8s(
+            juju,
+            app="microk8s",
+            charm_config=charm_config,
+            extra_config={"hostpath_storage": True},
         )
-        await e.model.wait_for_idle(["microk8s"], timeout=20 * 60)
+        wait_for_apps(juju, ["microk8s"], timeout=20 * 60)
 
-    app: Application = e.model.applications["microk8s"]
-    unit: Unit = app.units[0]
+    unit = get_unit_name(juju, "microk8s")
 
     # bootstrap a juju cloud on the deployed microk8s
-    async with microk8s_kubernetes_cloud_and_model(e, "microk8s") as (k8s_model, model_name):
-        with e.model_context(k8s_model):
-            LOG.info("Deploy CoreDNS")
-            await e.model.deploy(
-                config.MK8S_COREDNS_CHARM,
-                application_name="coredns",
-                channel=config.MK8S_COREDNS_CHANNEL,
-                trust=True,
-            )
-            await e.model.wait_for_idle(["coredns"])
+    with microk8s_kubernetes_cloud_and_model(juju, "microk8s") as (k8s_juju, model_name):
+        LOG.info("Deploy CoreDNS")
+        k8s_juju.deploy(
+            config.MK8S_COREDNS_CHARM,
+            app="coredns",
+            channel=config.MK8S_COREDNS_CHANNEL,
+            trust=True,
+        )
+        wait_for_apps(k8s_juju, ["coredns"])
 
-            LOG.info("Create offer for coredns:dns-provider endpoint")
-            await e.model.create_offer("coredns:dns-provider", "coredns")
+        LOG.info("Create offer for coredns:dns-provider endpoint")
+        k8s_juju.offer("coredns", endpoint="dns-provider", name="coredns")
 
         try:
             LOG.info("Consume coredns:dns-provider and relate with microk8s")
-            await e.model.consume(f"admin/{model_name}.coredns", "coredns")
-            await e.model.add_relation("microk8s", "coredns")
-            await e.model.wait_for_idle(["microk8s"])
+            juju.consume(f"{model_name}.coredns", "coredns", owner="admin")
+            juju.integrate("microk8s", "coredns")
+            wait_for_apps(juju, ["microk8s"])
 
-            with e.model_context(k8s_model):
-                await e.model.wait_for_idle(["coredns"])
+            wait_for_apps(k8s_juju, ["coredns"])
 
             for _ in range(10):
-                rc, stdout, stderr = await run_unit(unit, DNS_TEST)
+                rc, stdout, stderr = run_unit(juju, unit, DNS_TEST)
                 LOG.info("Verify the pod dns resolution %s", (rc, stdout, stderr))
                 if rc == 0:
                     break
@@ -66,6 +64,6 @@ async def test_core_dns(e: OpsTest, charm_config: dict):
             assert rc == 0, "Failed to resolve DNS in 10 tries"
 
         finally:
-            await app.remove_relation("dns", "coredns")
-            await e.model.remove_saas("coredns")
-            await e.model.wait_for_idle(["microk8s"])
+            juju.remove_relation("microk8s:dns", "coredns", force=True)
+            juju.cli("remove-saas", "coredns")
+            wait_for_apps(juju, ["microk8s"])
