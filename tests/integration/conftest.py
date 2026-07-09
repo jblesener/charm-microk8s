@@ -22,10 +22,6 @@ SERIES_BASES = {
 }
 
 
-def pytest_addoption(parser):
-    parser.addoption("--model", action="store", default=None, help="Existing Juju model to use")
-
-
 def _build_charm() -> str:
     subprocess.run(["charmcraft", "pack", "-v"], check=True)
     charms = sorted(pathlib.Path(".").glob("microk8s-ng*.charm"))
