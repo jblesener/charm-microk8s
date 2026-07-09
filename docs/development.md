@@ -12,18 +12,18 @@ tox -e unit
 
 ### Run integration tests
 
-Integration tests require a registered Juju controller. Juju versions 2.9 and 3.6 are supported.
+Integration tests require a registered Juju controller. Juju versions 3.6 and 4.x are supported.
 
 ```bash
-# for juju 2.9
-sudo snap install juju --channel 2.9/stable --classic
-juju bootstrap lxd
-tox -e integration-2.9
-
 # for juju 3.6
 sudo snap install juju --channel 3.6/stable
 juju bootstrap lxd
 tox -e integration-3
+
+# for juju 4.x
+sudo snap install juju --channel 4/stable
+juju bootstrap lxd
+tox -e integration-4
 ```
 
 The default configuration for the integration tests is to build the charm and run a single test for the current MicroK8s stable version. Refer to [tests/integration/config.py](../tests/integration/config.py) for more options.

@@ -38,7 +38,7 @@ jobs:
         control_plane: [1, 3]
         workers: [1]
         series: [jammy, noble, resolute]
-        juju: [3.6]
+        juju: [3.6, 4]
     steps:
       - name: Checking out repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -67,7 +67,11 @@ jobs:
           export MK8S_CLUSTER_SIZES='[[${{ matrix.control_plane }}, ${{ matrix.workers }}]]'
           export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
-          sg lxd -c 'tox -e integration-3 -- --model testing -k test_microk8s_cluster'
+          case '${{ matrix.juju }}' in
+            4*) tox_env=integration-4 ;;
+            *) tox_env=integration-3 ;;
+          esac
+          sg lxd -c "tox -e ${tox_env} -- --model testing -k test_microk8s_cluster"
       - name: Retrieve artifacts
         if: always()
         run: |
@@ -88,7 +92,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        juju: [3.6]
+        juju: [3.6, 4]
     steps:
       - name: Checking out repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -116,7 +120,11 @@ jobs:
           export MK8S_SERIES='${{ matrix.series }}'
           export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
-          sg lxd -c 'tox -e integration-3 -- --model testing -k test_metallb_traefik'
+          case '${{ matrix.juju }}' in
+            4*) tox_env=integration-4 ;;
+            *) tox_env=integration-3 ;;
+          esac
+          sg lxd -c "tox -e ${tox_env} -- --model testing -k test_metallb_traefik"
       - name: Retrieve artifacts
         if: always()
         run: |
@@ -137,7 +145,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        juju: [3.6]
+        juju: [3.6, 4]
     steps:
       - name: Checking out repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -165,7 +173,11 @@ jobs:
           export MK8S_SERIES='${{ matrix.series }}'
           export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
-          sg lxd -c 'tox -e integration-3 -- --model testing -k test_cos'
+          case '${{ matrix.juju }}' in
+            4*) tox_env=integration-4 ;;
+            *) tox_env=integration-3 ;;
+          esac
+          sg lxd -c "tox -e ${tox_env} -- --model testing -k test_cos"
       - name: Retrieve artifacts
         if: always()
         run: |
@@ -186,7 +198,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        juju: [3.6]
+        juju: [3.6, 4]
     steps:
       - name: Checking out repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -214,7 +226,11 @@ jobs:
           export MK8S_SERIES='${{ matrix.series }}'
           export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
-          sg lxd -c 'tox -e integration-3 -- --model testing -k test_coredns'
+          case '${{ matrix.juju }}' in
+            4*) tox_env=integration-4 ;;
+            *) tox_env=integration-3 ;;
+          esac
+          sg lxd -c "tox -e ${tox_env} -- --model testing -k test_coredns"
       - name: Retrieve artifacts
         if: always()
         run: |
@@ -235,7 +251,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        juju: [3.6]
+        juju: [3.6, 4]
     steps:
       - name: Checking out repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -263,7 +279,11 @@ jobs:
           export MK8S_SERIES='${{ matrix.series }}'
           export MK8S_CHARM=./build/microk8s-ng.charm
           export MK8S_CHARM_CHANNEL=''
-          sg lxd -c 'tox -e integration-3 -- --model testing -k test_ceph_csi'
+          case '${{ matrix.juju }}' in
+            4*) tox_env=integration-4 ;;
+            *) tox_env=integration-3 ;;
+          esac
+          sg lxd -c "tox -e ${tox_env} -- --model testing -k test_ceph_csi"
       - name: Retrieve artifacts
         if: always()
         run: |
