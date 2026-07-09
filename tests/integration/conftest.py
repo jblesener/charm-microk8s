@@ -55,14 +55,14 @@ def charm_config():
 async def run_unit(unit: Unit, command: str) -> Tuple[int, str, str]:
     """
     execute a command on the specified unit. Returns the exit code, stdout and stderr. Handles
-    differences between Juju 2.9 and 3.1
+    differences between Juju 2.9 and 3.x
     """
     action: Action = await unit.run(command)
 
     output = await unit.model.get_action_output(action.entity_id)
 
     if "return-code" in output:
-        # Juju 3.1
+        # Juju 3.x
         return output["return-code"], output.get("stdout") or "", output.get("stderr") or ""
     elif "Code" in output:
         # Juju 2.9
