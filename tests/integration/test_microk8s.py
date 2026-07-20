@@ -6,6 +6,7 @@
 import config
 import jubilant
 import pytest
+
 from conftest import deploy_microk8s, get_unit_name, run_unit, wait_for_apps
 
 

@@ -2,8 +2,9 @@
 # Copyright 2023 Canonical, Ltd.
 #
 import pytest
-from conftest import Environment
 from ops.model import BlockedStatus
+
+from conftest import Environment
 
 
 @pytest.mark.parametrize("role", ["", "control-plane", "worker"])

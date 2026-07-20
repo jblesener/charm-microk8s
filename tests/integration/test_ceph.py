@@ -7,6 +7,7 @@ import logging
 import config
 import jubilant
 import pytest
+
 from conftest import (
     available_cloud_types,
     deploy_microk8s,

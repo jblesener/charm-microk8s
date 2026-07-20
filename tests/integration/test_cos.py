@@ -8,6 +8,7 @@ import logging
 
 import config
 import jubilant
+
 from conftest import (
     deploy_microk8s,
     get_unit_name,

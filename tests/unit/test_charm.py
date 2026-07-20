@@ -8,8 +8,9 @@ from unittest import mock
 import ops
 import ops.testing
 import pytest
-from conftest import Environment
 from ops.model import BlockedStatus, WaitingStatus
+
+from conftest import Environment
 
 
 @pytest.mark.parametrize("role", ["worker", "control-plane", ""])
