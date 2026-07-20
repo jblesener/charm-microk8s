@@ -2,8 +2,6 @@ name: Promote charm
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 10 * * *"
 
 env:
   CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
