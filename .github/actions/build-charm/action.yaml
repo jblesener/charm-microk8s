@@ -12,6 +12,8 @@ runs:
     - name: Build charm
       id: pack
       uses: canonical/craft-actions/charmcraft/pack@main
+      with:
+        lxd-channel: 6/stable
 
     - name: Normalize charm paths
       id: charm-paths
